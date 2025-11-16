@@ -1,3 +1,3 @@
 # Advent of Code 2025
 
-Implemented on a front-end web development stack (NextJS + WebAssembly).
+Implemented on a front-end web stack (NextJS, MaterialUI, TailwindCSS, WebAssembly).
