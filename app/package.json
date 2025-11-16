@@ -1,0 +1,15 @@
+{
+  "name": "aoc2025_wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "aoc2025_wasm_bg.wasm",
+    "aoc2025_wasm.js",
+    "aoc2025_wasm.d.ts"
+  ],
+  "main": "aoc2025_wasm.js",
+  "types": "aoc2025_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
