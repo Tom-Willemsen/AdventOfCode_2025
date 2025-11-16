@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+  output: 'export',
+  basePath: '/AdventOfCode_2025'
 };
 
 export default nextConfig;

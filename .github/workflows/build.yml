@@ -1,0 +1,51 @@
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    env:
+      NODE_ENV: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Rust unit tests
+        run: cargo test
+        working-directory: ./aoc2025_wasm
+      - name: Build wasm library
+        run: wasm-pack build --target web
+        working-directory: ./aoc2025_wasm
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Install JS/TS dependencies
+        run: npm install
+      - name: Build JS/TS
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: out
+          path: |
+            out
+          if-no-files-found: error
+          retention-days: 3
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        with:
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: out/
+          force_orphan: true

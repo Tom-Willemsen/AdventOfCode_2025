@@ -8,7 +8,17 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { FormLabel } from "@mui/material";
 
-function doComputation(day: Number, inputData: string, setOutputData, setTimingData) {
+function doComputation({
+  day,
+  inputData,
+  setOutputData,
+  setTimingData
+}: {
+  day: Number,
+  inputData: string,
+  setOutputData: (data: string) => void,
+  setTimingData: (data: number | null) => void,
+}) {
   let start = performance.now();
   setOutputData("");
   setTimingData(null);
@@ -75,7 +85,7 @@ export default function Home() {
         }}
       />
       <div className="m-2 w-full">
-        <Button variant="contained" onClick={() => { doComputation(day, inputData, setOutputData, setTimingData) }} disabled={!webAssemblyReady || inputData.length === 0} >Run solution</Button>
+        <Button variant="contained" onClick={() => { doComputation({ day, inputData, setOutputData, setTimingData }) }} disabled={!webAssemblyReady || inputData.length === 0} >Run solution</Button>
 
         {timingData !== null ? <p className="float-right max-w-1/2 text-l">⌚ Solution time (browser timing): {timingData.toFixed(3)} ms</p> : null}
       </div>
