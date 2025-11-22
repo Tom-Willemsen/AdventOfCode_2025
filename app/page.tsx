@@ -1,6 +1,6 @@
 'use client'
 
-import init, { run_2025_01 } from "@/aoc2025_wasm/pkg/aoc2025_wasm";
+import init, { run_day } from "@/aoc2025_wasm/pkg/aoc2025_wasm";
 import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -14,29 +14,22 @@ function doComputation({
   setOutputData,
   setTimingData
 }: {
-  day: Number,
+  day: number,
   inputData: string,
   setOutputData: (data: string) => void,
   setTimingData: (data: number | null) => void,
 }) {
-  let start = performance.now();
   setOutputData("");
   setTimingData(null);
 
-  let result: string | null = null;
-  if (day === 1) {
-    result = run_2025_01(inputData);
-  }
-
+  // Should realy put this in a webworker, but
+  // webworker + wasm = pain.
+  let start = performance.now();
+  let ans = run_day(day, inputData)
   let end = performance.now();
 
-  if (result !== null) {
-    setOutputData(result);
-    setTimingData(end - start);
-  } else {
-    setOutputData("😢 No solution for that day yet");
-    setTimingData(null);
-  }
+  setOutputData(ans);
+  setTimingData(end - start);
 }
 
 export default function Home() {
@@ -47,7 +40,9 @@ export default function Home() {
   const [timingData, setTimingData] = useState<number | null>(null);
 
   useEffect(() => {
-    init().then(() => setWebAssemblyReady(true))
+    if (!webAssemblyReady) {
+      init().then(() => setWebAssemblyReady(true))
+    }
   })
 
   return (
