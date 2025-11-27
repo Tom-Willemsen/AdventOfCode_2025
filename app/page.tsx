@@ -3,16 +3,15 @@
 import init, { run_day, initThreadPool } from "@/aoc2025_wasm/pkg/aoc2025_wasm";
 import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import { FormLabel } from "@mui/material";
+import DaySelector from "./day_selector";
+import PuzzleOutput from "./puzzle_output";
+import PuzzleInput from "./puzzle_input";
 
 function doComputation({
   day,
   inputData,
   setOutputData,
-  setTimingData
+  setTimingData,
 }: {
   day: number,
   inputData: string,
@@ -49,51 +48,17 @@ export default function Home() {
 
   return (
     <div className="w-4/5 max-w-[1000px]">
-      <div className="w-full m-2 text-xl">
-        <FormLabel>
-          Puzzle:
-        </FormLabel>
-        <Select
-          value={day}
-          label="Day"
-          className="m-2 min-w-[150px]"
-          onChange={(event) => setDay(event.target.value)}
-        >
-          {
-            [...Array(12).keys()].map(i => {
-              return <MenuItem value={i + 1} key={i}>Day {i + 1}</MenuItem>
-            })
-          }
-        </Select>
-      </div>
-      <TextField
-        error={inputData.length === 0}
-        multiline
-        label="Input data"
-        variant="outlined"
-        required
-        rows={10}
-        className="font-mono m-2 w-full"
-        slotProps={{
-          htmlInput: { className: 'font-mono', 'white-space': 'nowrap', 'overflow': 'hidden' }
-        }}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          setInputData(event.target.value);
-        }}
-      />
+      <DaySelector day={day} setDay={setDay} />
+      <PuzzleInput inputData={inputData} setInputData={setInputData} />
       <div className="m-2 w-full">
-        <Button variant="contained" onClick={() => { doComputation({ day, inputData, setOutputData, setTimingData }) }} disabled={!webAssemblyReady || inputData.length === 0} >Run solution</Button>
-
-        {timingData !== null ? <p className="float-right max-w-1/2 text-l">⌚ Solution time (browser timing): {timingData.toFixed(3)} ms</p> : null}
+        <Button
+          variant="contained"
+          onClick={() => { doComputation({ day, inputData, setOutputData, setTimingData }) }}
+          disabled={!webAssemblyReady || inputData.length === 0} >
+          Run solution
+        </Button>
       </div>
-      <TextField
-        multiline
-        variant="outlined"
-        rows={10}
-        className="font-mono w-full m-2"
-        slotProps={{ htmlInput: { 'className': 'font-mono', "readOnly": true } }}
-        value={outputData}
-      />
+      <PuzzleOutput output={outputData} timingData={timingData} />
     </div>
   );
 }

@@ -24,9 +24,9 @@ export default function RootLayout({
       <body
         className={`${geistMono.variable} antialiased`}
       >
-        <Script src="enable-threads.js" strategy="beforeInteractive"></Script>
-        <div className="flex place-content-center bg-[#c9040b]">
-          <h1 className="font-mono p-4 font-bold text-align-center text-xl text-white">
+        <Script src="enable-threads.js" />
+        <div className="flex place-content-center bg-gradient-to-r from-[#c9040b] via-[#b0040a] to-[#c9040b]">
+          <h1 className="font-mono p-4 font-bold text-align-center text-l sm:text-xl text-white">
             🎄✨🎄 Advent of Code 2025 🎄✨🎄
           </h1>
         </div>
