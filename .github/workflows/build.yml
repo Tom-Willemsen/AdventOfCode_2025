@@ -20,12 +20,12 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Add rustfmt/clippy
-        run: rustup component add --toolchain nightly-2025-11-15-x86_64-unknown-linux-gnu rustfmt clippy
+        run: rustup component add rustfmt clippy
       - name: Format check
-        run: cargo fmt --check
+        run: cargo +stable fmt --check
         working-directory: ./aoc2025_wasm
       - name: Clippy
-        run: cargo clippy -- --deny warnings
+        run: cargo +stable clippy -- --deny warnings
         working-directory: ./aoc2025_wasm
       - name: Build wasm library
         run: wasm-pack build --target web
