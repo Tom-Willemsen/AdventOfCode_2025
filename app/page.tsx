@@ -7,6 +7,10 @@ import DaySelector from "./day_selector";
 import PuzzleInput from "./puzzle_input";
 import PuzzleOutput from "./puzzle_output";
 
+function warmup_jit() {
+	run_day(1, "0");
+}
+
 function doComputation({
 	day,
 	inputData,
@@ -40,11 +44,12 @@ export default function Home() {
 
 	useEffect(() => {
 		if (typeof window !== "undefined" && !webAssemblyReady) {
-			init().then(() =>
-				initThreadPool(navigator.hardwareConcurrency).then(() =>
-					setWebAssemblyReady(true),
-				),
-			);
+			init().then(() => {
+				initThreadPool(navigator.hardwareConcurrency).then(() => {
+					warmup_jit();
+					setWebAssemblyReady(true);
+				});
+			});
 		}
 	});
 
