@@ -15,9 +15,13 @@ pub fn run_2025_01(inp: &str) -> Result<String> {
         .map(|x| x.parse::<i64>().with_context(|| "failed to parse int"))
         .collect::<Result<_>>()?;
 
-    Ok(nums
-        .into_par_iter()
-        .map(|n| fibonacci(n))
-        .sum::<i64>()
-        .to_string())
+    Ok(nums.into_par_iter().map(fibonacci).sum::<i64>().to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_one_plus_one() {
+        assert_eq!(1 + 1, 2);
+    }
 }

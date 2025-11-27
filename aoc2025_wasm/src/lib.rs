@@ -1,5 +1,7 @@
 pub mod impl_2025_01;
 
+pub use wasm_bindgen_rayon::init_thread_pool;
+
 pub use clap::Parser;
 
 use anyhow::anyhow;

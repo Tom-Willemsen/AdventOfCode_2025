@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -24,6 +24,7 @@ export default function RootLayout({
       <body
         className={`${geistMono.variable} antialiased`}
       >
+        <Script src="enable-threads.js" strategy="beforeInteractive"></Script>
         <div className="flex place-content-center bg-[#c9040b]">
           <h1 className="font-mono p-4 font-bold text-align-center text-xl text-white">
             🎄✨🎄 Advent of Code 2025 🎄✨🎄

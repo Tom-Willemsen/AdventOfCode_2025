@@ -1,6 +1,6 @@
 'use client'
 
-import init, { run_day } from "@/aoc2025_wasm/pkg/aoc2025_wasm";
+import init, { run_day, initThreadPool } from "@/aoc2025_wasm/pkg/aoc2025_wasm";
 import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -24,9 +24,9 @@ function doComputation({
 
   // Should realy put this in a webworker, but
   // webworker + wasm = pain.
-  let start = performance.now();
-  let ans = run_day(day, inputData)
-  let end = performance.now();
+  const start = performance.now();
+  const ans = run_day(day, inputData)
+  const end = performance.now();
 
   setOutputData(ans);
   setTimingData(end - start);
@@ -40,8 +40,10 @@ export default function Home() {
   const [timingData, setTimingData] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!webAssemblyReady) {
-      init().then(() => setWebAssemblyReady(true))
+    if (typeof window !== "undefined" && !webAssemblyReady) {
+      init().then(() =>
+        initThreadPool(navigator.hardwareConcurrency).then(() => setWebAssemblyReady(true))
+      );
     }
   })
 
@@ -59,7 +61,7 @@ export default function Home() {
         >
           {
             [...Array(12).keys()].map(i => {
-              return <MenuItem value={i + 1}>Day {i + 1}</MenuItem>
+              return <MenuItem value={i + 1} key={i}>Day {i + 1}</MenuItem>
             })
           }
         </Select>
