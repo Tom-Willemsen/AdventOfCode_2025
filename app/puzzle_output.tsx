@@ -25,7 +25,7 @@ export default function PuzzleOutput(props: {
 			/>
 			{timingData !== null ? (
 				<Alert severity="info" icon={<TimerOutlinedIcon />} className="m-2">
-					Browser timing: {timingData.toFixed(3)} ms
+					Browser timing: {timingData.toFixed(2)} ms
 				</Alert>
 			) : null}
 		</div>
