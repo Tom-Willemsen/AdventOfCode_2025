@@ -3,7 +3,9 @@ import init, { initThreadPool, run_day } from "@/aoc2025_wasm/pkg/aoc2025_wasm";
 let init_done = false;
 
 function warmup() {
-    run_day(1, "0");
+    for (let day = 1; day <= 12; day++) {
+        run_day(day, "");
+    }
 }
 
 function post_answer(day: number, input: string): void {
