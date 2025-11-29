@@ -56,13 +56,16 @@ if (typeof window === 'undefined') {
 
             registration.addEventListener("updatefound", () => {
                 console.log("Reloading page to make use of updated COOP/COEP Service Worker.");
-                window.location.reload();
+                // Hack - sometimes ctrl-f5 was breaking window.location.reload()
+                // If we make it go to a "different" URL it seems to work better.
+                window.location.href = location.origin + location.pathname + "?r=" + crypto.randomUUID();
             });
 
             // If the registration is active, but it's not controlling the page
             if (registration.active && !navigator.serviceWorker.controller) {
                 console.log("Reloading page to make use of COOP/COEP Service Worker.");
-                window.location.reload();
+                // Same hack as above
+                window.location.href = location.origin + location.pathname + "?r=" + crypto.randomUUID();
             }
         }
     })();
