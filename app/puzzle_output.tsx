@@ -8,16 +8,20 @@ export default function PuzzleOutput(props: {
 	output: string;
 	timingData: number | null;
 }) {
+	const output = props.output;
 	const timingData = props.timingData;
 	return (
 		<div>
 			<TextField
 				multiline
-				variant="outlined"
+				variant="filled"
+				label="Solution output"
+				disabled={output.length === 0}
 				rows={3}
-				className="font-mono w-full m-2"
+				className="w-full m-2"
 				slotProps={{ htmlInput: { className: "font-mono", readOnly: true } }}
-				value={props.output}
+				value={output}
+				error={output.startsWith("Error: ")}
 			/>
 			{timingData !== null ? (
 				<Alert severity="info" icon={<TimerOutlinedIcon />} className="m-2">

@@ -11,7 +11,7 @@ function warmup_jit() {
 	run_day(1, "0");
 }
 
-function doComputation({
+async function doComputation({
 	day,
 	inputData,
 	setOutputData,
@@ -27,12 +27,21 @@ function doComputation({
 
 	// Should realy put this in a webworker, but
 	// webworker + wasm = pain.
-	const start = performance.now();
-	const ans = run_day(day, inputData);
-	const end = performance.now();
+	const [ans, timing] = await new Promise<[string, number]>((resolve, _) => {
+		console.log("doing work")
+		const start = performance.now();
+		const ans = run_day(day, inputData);
+		const end = performance.now();
+		console.log("done work")
+		resolve([ans, end - start]);
+	});
 
+	console.log("reacting")
 	setOutputData(ans);
-	setTimingData(end - start);
+	setTimingData(timing);
+
+	// setOutputData(ans);
+	// setTimingData(end - start);
 }
 
 export default function Home() {
@@ -51,7 +60,7 @@ export default function Home() {
 				});
 			});
 		}
-	});
+	}, [webAssemblyReady]);
 
 	return (
 		<div className="w-4/5 max-w-[1000px]">

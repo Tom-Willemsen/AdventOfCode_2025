@@ -12,14 +12,13 @@ export default function PuzzleInput(props: {
 			multiline
 			label="Input data"
 			variant="outlined"
+			value={props.inputData}
 			required
 			rows={10}
-			className="font-mono m-2 w-full"
+			className="m-2 w-full"
 			slotProps={{
 				htmlInput: {
 					className: "font-mono",
-					"white-space": "nowrap",
-					overflow: "hidden",
 				},
 			}}
 			onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
