@@ -26,16 +26,17 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={`${geistMono.variable} antialiased`}>
 				<Script src="enable-threads.js" strategy="beforeInteractive" />
-				<div className="flex items-center bg-gradient-to-r from-[#c9040b] via-[#b0040a] to-[#c9040b] w-screen">
-					<h1 className="font-mono p-4 font-bold text-center text-l sm:text-xl text-white grow">
-						🎄✨🎄 Advent of Code 2025 🎄✨🎄
+				<div className="flex items-center bg-gradient-to-r from-[#c9040b] via-[#b0040a] to-[#c9040b] w-screen h-20">
+					<h1 className="font-mono px-1 md:px-2 font-bold text-center text-lg sm:text-xl md:text-2xl text-white grow break-keep">
+						<span className="max-[450px]:hidden">🎄✨🎄</span> Advent of Code
+						2025 <span className="max-[450px]:hidden">🎄✨🎄</span>
 					</h1>
 					<Link
 						href={"https://github.com/Tom-Willemsen/AdventOfCode_2025"}
 						target="_blank"
 					>
 						<GitHubIcon
-							className="float-right mx-4"
+							className="float-right mx-1 sm:mx-2 md:mx-4"
 							fontSize="large"
 							htmlColor="#ffffff"
 						/>
