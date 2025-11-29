@@ -32,7 +32,10 @@ export default function Home() {
 	const [inputData, setInputData] = useState("");
 	const [day, setDay] = useState(1);
 	const [timingData, setTimingData] = useState<number | null>(null);
-	const [busy, setBusy] = useState(false);
+
+	// Initially busy while web worker sets up wasm. Set back to false by an
+	// initial message from worker.
+	const [busy, setBusy] = useState(true);
 
 	const worker = useMemo<Worker>(() => {
 		const worker = new Worker(new URL("webworker.ts", import.meta.url));
@@ -61,7 +64,7 @@ export default function Home() {
 					});
 				}}
 				busy={busy}
-				disabled={worker === null || inputData.length === 0}
+				disabled={inputData.length === 0}
 			/>
 			<PuzzleOutput output={outputData} timingData={timingData} />
 		</div>
