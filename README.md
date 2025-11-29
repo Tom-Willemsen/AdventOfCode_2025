@@ -1,5 +1,5 @@
 # Advent of Code 2025
 
-Implemented on a front-end web stack (NextJS, WebAssembly). I'm basically a web developer now.
+An exploration of modern front-end web development (NextJS, WebAssembly).
 
 Deployed on [Github pages](https://tom-willemsen.github.io/AdventOfCode_2025).
