@@ -13,6 +13,7 @@ function doComputation({
 	setTimingData,
 	setBusy,
 	worker,
+	bench,
 }: {
 	day: number;
 	inputData: string;
@@ -20,11 +21,12 @@ function doComputation({
 	setTimingData: (data: number | null) => void;
 	setBusy: (data: boolean) => void;
 	worker: Worker;
+	bench: boolean;
 }) {
 	setOutputData("");
 	setTimingData(null);
 	setBusy(true);
-	worker.postMessage([day, inputData]);
+	worker.postMessage([day, inputData, bench]);
 }
 
 export default function Home() {
@@ -53,7 +55,7 @@ export default function Home() {
 			<DaySelector day={day} setDay={setDay} />
 			<PuzzleInput inputData={inputData} setInputData={setInputData} />
 			<RunButton
-				onClick={() => {
+				onClick={(bench: boolean) => {
 					doComputation({
 						day,
 						inputData,
@@ -61,6 +63,7 @@ export default function Home() {
 						setTimingData,
 						setBusy,
 						worker,
+						bench,
 					});
 				}}
 				busy={busy}
