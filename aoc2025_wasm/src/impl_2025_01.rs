@@ -64,4 +64,26 @@ mod tests {
     fn test_real() {
         assert_eq!(calculate(&REAL_DATA).unwrap(), (1118, 6289));
     }
+
+    #[test]
+    fn test_many_rotations() {
+        assert_eq!(calculate(&"R1000").unwrap(), (0, 10));
+        assert_eq!(calculate(&"L1000").unwrap(), (0, 10));
+    }
+
+    #[test]
+    fn test_simple_ones() {
+        assert_eq!(calculate(&"L50\nR50").unwrap(), (1, 1));
+        assert_eq!(calculate(&"L50\nL50").unwrap(), (1, 1));
+        assert_eq!(calculate(&"R50\nR50").unwrap(), (1, 1));
+        assert_eq!(calculate(&"R50\nL50").unwrap(), (1, 1));
+    }
+
+    #[test]
+    fn test_simple_twos() {
+        assert_eq!(calculate(&"L150\nL50").unwrap(), (1, 2));
+        assert_eq!(calculate(&"L150\nR50").unwrap(), (1, 2));
+        assert_eq!(calculate(&"R150\nL50").unwrap(), (1, 2));
+        assert_eq!(calculate(&"R150\nR50").unwrap(), (1, 2));
+    }
 }

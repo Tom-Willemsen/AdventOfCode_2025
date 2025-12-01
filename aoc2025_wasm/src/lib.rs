@@ -1,20 +1,9 @@
-pub mod impl_2025_01;
+mod impl_2025_01;
 
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
 pub use wasm_bindgen_rayon::init_thread_pool;
-
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
-pub use clap::Parser;
 
 use anyhow::anyhow;
 use wasm_bindgen::prelude::*;
-
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
-#[derive(Parser)]
-pub struct Cli {
-    #[clap(short, long)]
-    pub input: String,
-}
 
 #[wasm_bindgen]
 pub fn run_day(day: u32, input: &str) -> String {
