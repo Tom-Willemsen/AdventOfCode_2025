@@ -1,5 +1,4 @@
 use anyhow::{Result, anyhow};
-use num::Integer;
 use std::collections::HashSet;
 
 fn string_length_of(n: u64) -> u32 {
@@ -20,10 +19,6 @@ fn repeat(n: u64, times: u32) -> u64 {
     result
 }
 
-fn postfix_of(n: u64, length: u32) -> u64 {
-    n % 10_u64.pow(length)
-}
-
 fn calculate(inp: &str) -> Result<(u64, u64)> {
     let mut p1 = 0;
     let mut p2 = 0;
@@ -37,22 +32,23 @@ fn calculate(inp: &str) -> Result<(u64, u64)> {
             .ok_or_else(|| anyhow!("invalid format"))?;
 
         let start: u64 = start.trim().parse()?;
+        let start_slen = string_length_of(start);
         let end: u64 = end.trim().parse()?;
         let end_slen = string_length_of(end);
 
-        for n in start..=end {
-            let n_slen = string_length_of(n);
-            for postfix_len in 1..=end_slen / 2 {
-                let (times, remainder) = n_slen.div_mod_floor(&postfix_len);
-                if times < 2 || remainder != 0 {
-                    continue;
-                }
-                let sx = repeat(postfix_of(n, postfix_len), times);
+        for postfix_len in 1..=end_slen / 2 {
+            let times_lower_bound = start_slen / postfix_len;
+            let times_upper_bound = end_slen / postfix_len;
 
-                if sx >= start && sx <= end {
-                    invalid_p2.insert(sx);
-                    if times == 2 {
-                        invalid_p1.insert(sx);
+            for postfix in 10_u64.pow(postfix_len - 1)..10_u64.pow(postfix_len) {
+                for times in times_lower_bound.max(2)..=times_upper_bound {
+                    let n = repeat(postfix, times);
+
+                    if n >= start && n <= end {
+                        invalid_p2.insert(n);
+                        if times == 2 {
+                            invalid_p1.insert(n);
+                        }
                     }
                 }
             }
@@ -103,18 +99,6 @@ mod tests {
         assert_eq!(repeat(99, 3), 999999);
         assert_eq!(repeat(100, 3), 100100100);
         assert_eq!(repeat(101, 3), 101101101);
-    }
-
-    #[test]
-    fn test_postfix() {
-        assert_eq!(postfix_of(99, 1), 9);
-        assert_eq!(postfix_of(10, 1), 0);
-        assert_eq!(postfix_of(11, 1), 1);
-
-        assert_eq!(postfix_of(9999, 2), 99);
-        assert_eq!(postfix_of(1000, 2), 0);
-        assert_eq!(postfix_of(1001, 2), 1);
-        assert_eq!(postfix_of(1010, 2), 10);
     }
 
     #[test]
