@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result};
 use std::collections::HashSet;
 
 fn string_length_of(n: u64) -> u32 {
@@ -27,9 +27,7 @@ fn calculate(inp: &str) -> Result<(u64, u64)> {
     let mut invalid_p2 = HashSet::<u64>::default();
 
     for elem in inp.split(",") {
-        let (start, end) = elem
-            .split_once("-")
-            .ok_or_else(|| anyhow!("invalid format"))?;
+        let (start, end) = elem.split_once("-").context("invalid format")?;
 
         let start: u64 = start.trim().parse()?;
         let start_slen = string_length_of(start);

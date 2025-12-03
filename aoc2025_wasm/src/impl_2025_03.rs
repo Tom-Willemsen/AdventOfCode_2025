@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result};
 
 fn calculate_one<const DIGITS: usize>(line: &[u64]) -> Result<u64> {
     let mut ans = 0;
@@ -7,17 +7,17 @@ fn calculate_one<const DIGITS: usize>(line: &[u64]) -> Result<u64> {
     for d in 0..DIGITS {
         let next_digit = line
             .get(current_idx..=line.len() - (DIGITS - d))
-            .ok_or_else(|| anyhow!("bad slice indices (bad input?)"))?
+            .context("bad slice indices (bad input?)")?
             .iter()
             .max()
-            .ok_or_else(|| anyhow!("not enough digits in line"))?;
+            .context("not enough digits in line")?;
 
         current_idx += line
             .get(current_idx..)
-            .ok_or_else(|| anyhow!("bad current index"))?
+            .context("bad current index")?
             .iter()
             .position(|e| e == next_digit)
-            .ok_or_else(|| anyhow!("invalid index of next digit"))?
+            .context("invalid index of next digit")?
             + 1;
 
         ans *= 10;
@@ -34,7 +34,7 @@ fn calculate<const DIGITS: usize>(inp: &str) -> Result<u64> {
                 .bytes()
                 .map(|c| {
                     c.checked_sub(b'0')
-                        .ok_or_else(|| anyhow!("invalid character"))
+                        .context("invalid character")
                         .map(|c| c as u64)
                 })
                 .collect::<Result<Vec<_>>>()?;
