@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Context, Result, bail};
 use num::traits::Euclid;
 
 fn calculate(raw_inp: &str) -> Result<(i32, i32)> {
@@ -7,9 +7,7 @@ fn calculate(raw_inp: &str) -> Result<(i32, i32)> {
     let mut rot = 50;
 
     for line in raw_inp.lines() {
-        let (dir, num) = line
-            .split_at_checked(1)
-            .ok_or_else(|| anyhow!("invalid line format"))?;
+        let (dir, num) = line.split_at_checked(1).context("invalid line format")?;
 
         let num = num.parse::<i32>()?;
 
