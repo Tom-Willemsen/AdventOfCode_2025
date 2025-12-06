@@ -1,19 +1,39 @@
 use anyhow::{Context, Result};
 use std::collections::HashSet;
 
+const POW10: [u64; 19] = [
+    1,
+    10,
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+    10000000,
+    100000000,
+    1000000000,
+    10000000000,
+    100000000000,
+    1000000000000,
+    10000000000000,
+    100000000000000,
+    1000000000000000,
+    10000000000000000,
+    100000000000000000,
+    1000000000000000000,
+];
+
 fn string_length_of(n: u64) -> u32 {
-    if n == 0 {
-        return 1;
-    }
-    n.ilog10() + 1
+    if n < 10 { 1 } else { n.ilog10() + 1 }
 }
 
-fn repeat(n: u64, times: u32) -> u64 {
-    let len_n = string_length_of(n);
+fn repeat(n: u64, n_strlen: u32, times: u32) -> u64 {
+    debug_assert!(n_strlen == string_length_of(n));
+    let p = POW10.get(n_strlen as usize).expect("strlen > 19");
     let mut result = n;
 
     for _ in 0..(times - 1) {
-        result = result * 10_u64.pow(len_n) + n;
+        result = result * p + n;
     }
 
     result
@@ -29,20 +49,23 @@ fn calculate(inp: &str) -> Result<(u64, u64)> {
     for elem in inp.split(",") {
         let (start, end) = elem.split_once("-").context("invalid format")?;
 
-        let start: u64 = start.trim().parse()?;
-        let start_slen = string_length_of(start);
+        let start = start.trim();
+        let end = end.trim();
+
+        let start_slen = start.len() as u32;
+        let start: u64 = start.parse()?;
+        let end_slen = end.len() as u32;
         let end: u64 = end.trim().parse()?;
-        let end_slen = string_length_of(end);
 
         for postfix_len in 1..=end_slen / 2 {
             let times_lower_bound = start_slen / postfix_len;
             let times_upper_bound = end_slen / postfix_len;
 
-            for postfix in 10_u64.pow(postfix_len - 1)..10_u64.pow(postfix_len) {
-                for times in times_lower_bound.max(2)..=times_upper_bound {
-                    let n = repeat(postfix, times);
+            for times in times_lower_bound.max(2)..=times_upper_bound {
+                for postfix in 10_u64.pow(postfix_len - 1)..10_u64.pow(postfix_len) {
+                    let n = repeat(postfix, postfix_len, times);
 
-                    if n >= start && n <= end {
+                    if (start..=end).contains(&n) {
                         invalid_p2.insert(n);
                         if times == 2 {
                             invalid_p1.insert(n);
@@ -86,17 +109,17 @@ mod tests {
 
     #[test]
     fn test_repeat() {
-        assert_eq!(repeat(99, 1), 99);
-        assert_eq!(repeat(100, 1), 100);
-        assert_eq!(repeat(101, 1), 101);
+        assert_eq!(repeat(99, 2, 1), 99);
+        assert_eq!(repeat(100, 3, 1), 100);
+        assert_eq!(repeat(101, 3, 1), 101);
 
-        assert_eq!(repeat(99, 2), 9999);
-        assert_eq!(repeat(100, 2), 100100);
-        assert_eq!(repeat(101, 2), 101101);
+        assert_eq!(repeat(99, 2, 2), 9999);
+        assert_eq!(repeat(100, 3, 2), 100100);
+        assert_eq!(repeat(101, 3, 2), 101101);
 
-        assert_eq!(repeat(99, 3), 999999);
-        assert_eq!(repeat(100, 3), 100100100);
-        assert_eq!(repeat(101, 3), 101101101);
+        assert_eq!(repeat(99, 2, 3), 999999);
+        assert_eq!(repeat(100, 3, 3), 100100100);
+        assert_eq!(repeat(101, 3, 3), 101101101);
     }
 
     #[test]
