@@ -24,12 +24,12 @@ onmessage = (msg) => {
 		const startTime = performance.now();
 		let endTime = startTime;
 		let iterations = 0;
-		while (endTime < startTime + 1000) {
+		while (endTime < startTime + 5000) {
 			iterations++;
 			run_day(day, input)
 			endTime = performance.now();
 		}
-		postMessage([`${iterations} iterations in ${(endTime - startTime).toFixed(2)} ms, ${((endTime - startTime) / iterations).toFixed(2)} ms/iter`, null])
+		postMessage([`${iterations} iterations in ${(endTime - startTime).toFixed(3)} ms, ${((endTime - startTime) / iterations).toFixed(3)} ms/iter`, null])
 	} else {
 		let workerResult = "";
 		const startTime = performance.now();
