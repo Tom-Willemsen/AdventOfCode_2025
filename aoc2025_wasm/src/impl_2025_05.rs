@@ -48,7 +48,7 @@ fn calculate_p2(ranges: &[(u64, u64)]) -> u64 {
         .iter()
         .flat_map(|r| [r.0, r.1])
         .sorted()
-        .unique()
+        .dedup()
         .collect::<Vec<_>>();
 
     let mut fresh = AHashSet::default();
