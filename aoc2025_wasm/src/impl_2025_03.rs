@@ -27,26 +27,25 @@ fn calculate_one<const DIGITS: usize>(line: &[u64]) -> Result<u64> {
     Ok(ans)
 }
 
-fn calculate<const DIGITS: usize>(inp: &str) -> Result<u64> {
+fn calculate(inp: &str) -> Result<(u64, u64)> {
     inp.lines()
-        .map(|line| {
+        .filter_map(|line| {
             let bytes = line
                 .bytes()
-                .map(|c| {
-                    c.checked_sub(b'0')
-                        .context("invalid character")
-                        .map(|c| c as u64)
-                })
-                .collect::<Result<Vec<_>>>()?;
+                .map(|c| c.checked_sub(b'0').map(|c| c as u64))
+                .collect::<Option<Vec<_>>>()?;
 
-            calculate_one::<DIGITS>(&bytes)
+            Some((
+                calculate_one::<2>(&bytes).ok()?,
+                calculate_one::<12>(&bytes).ok()?,
+            ))
         })
-        .sum::<Result<u64>>()
+        .reduce(|a, b| (a.0 + b.0, a.1 + b.1))
+        .context("no valid lines?")
 }
 
 pub fn run_2025_03(inp: &str) -> Result<String> {
-    let p1 = calculate::<2>(inp)?;
-    let p2 = calculate::<12>(inp)?;
+    let (p1, p2) = calculate(inp)?;
     Ok(format!("{p1}\n{p2}"))
 }
 
@@ -59,21 +58,21 @@ mod tests {
 
     #[test]
     fn test_example_p1() {
-        assert_eq!(calculate::<2>(EXAMPLE_DATA).unwrap(), 357);
+        assert_eq!(calculate(EXAMPLE_DATA).unwrap().0, 357);
     }
 
     #[test]
     fn test_example_p2() {
-        assert_eq!(calculate::<12>(EXAMPLE_DATA).unwrap(), 3121910778619);
+        assert_eq!(calculate(EXAMPLE_DATA).unwrap().1, 3121910778619);
     }
 
     #[test]
     fn test_real_p1() {
-        assert_eq!(calculate::<2>(REAL_DATA).unwrap(), 17107);
+        assert_eq!(calculate(REAL_DATA).unwrap().0, 17107);
     }
 
     #[test]
     fn test_real_p2() {
-        assert_eq!(calculate::<12>(REAL_DATA).unwrap(), 169349762274117);
+        assert_eq!(calculate(REAL_DATA).unwrap().1, 169349762274117);
     }
 }
