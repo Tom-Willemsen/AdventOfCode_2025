@@ -23,26 +23,19 @@ const POW10: [u64; 19] = [
     1000000000000000000,
 ];
 
-fn string_length_of(n: u64) -> u32 {
-    if n < 10 { 1 } else { n.ilog10() + 1 }
-}
-
-fn repeat(n: u64, n_strlen: u32, times: u32) -> u64 {
-    debug_assert!(n_strlen == string_length_of(n));
-    let p = POW10.get(n_strlen as usize).expect("strlen > 19");
+fn repeat(n: u64, n_strlen: usize, times: usize) -> u64 {
+    let p = POW10.get(n_strlen).expect("strlen > 19");
     let mut result = n;
 
     for _ in 0..(times - 1) {
-        result = result * p + n;
+        result = result * p + n
     }
-
     result
 }
 
 fn calculate(inp: &str) -> Result<(u64, u64)> {
     let mut p1 = 0;
     let mut p2 = 0;
-
     let mut invalid_p1 = HashSet::<u64>::default();
     let mut invalid_p2 = HashSet::<u64>::default();
 
@@ -52,9 +45,9 @@ fn calculate(inp: &str) -> Result<(u64, u64)> {
         let start = start.trim();
         let end = end.trim();
 
-        let start_slen = start.len() as u32;
+        let start_slen = start.len();
         let start: u64 = start.parse()?;
-        let end_slen = end.len() as u32;
+        let end_slen = end.len();
         let end: u64 = end.trim().parse()?;
 
         for postfix_len in 1..=end_slen / 2 {
@@ -66,12 +59,14 @@ fn calculate(inp: &str) -> Result<(u64, u64)> {
                     continue;
                 }
 
-                for postfix in *POW10
-                    .get((postfix_len - 1) as usize)
-                    .context("strlen > 19")?
-                    ..*POW10.get(postfix_len as usize).context("strlen > 19")?
+                for postfix in *POW10.get(postfix_len - 1).context("strlen > 19")?
+                    ..*POW10.get(postfix_len).context("strlen > 19")?
                 {
                     let n = repeat(postfix, postfix_len, times);
+
+                    if n > end {
+                        break;
+                    }
 
                     if (start..=end).contains(&n) {
                         invalid_p2.insert(n);
@@ -128,14 +123,5 @@ mod tests {
         assert_eq!(repeat(99, 2, 3), 999999);
         assert_eq!(repeat(100, 3, 3), 100100100);
         assert_eq!(repeat(101, 3, 3), 101101101);
-    }
-
-    #[test]
-    fn test_string_length() {
-        assert_eq!(string_length_of(0), 1);
-        assert_eq!(string_length_of(9), 1);
-        assert_eq!(string_length_of(10), 2);
-        assert_eq!(string_length_of(99), 2);
-        assert_eq!(string_length_of(100), 3);
     }
 }
