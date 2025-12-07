@@ -62,7 +62,15 @@ fn calculate(inp: &str) -> Result<(u64, u64)> {
             let times_upper_bound = end_slen / postfix_len;
 
             for times in times_lower_bound.max(2)..=times_upper_bound {
-                for postfix in 10_u64.pow(postfix_len - 1)..10_u64.pow(postfix_len) {
+                if !(start_slen..=end_slen).contains(&(postfix_len * times)) {
+                    continue;
+                }
+
+                for postfix in *POW10
+                    .get((postfix_len - 1) as usize)
+                    .context("strlen > 19")?
+                    ..*POW10.get(postfix_len as usize).context("strlen > 19")?
+                {
                     let n = repeat(postfix, postfix_len, times);
 
                     if (start..=end).contains(&n) {
