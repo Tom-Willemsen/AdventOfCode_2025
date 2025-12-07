@@ -1,47 +1,43 @@
 use anyhow::{Context, Result};
-use ndarray::Array2;
+use ndarray::{Array2, s};
 
 use crate::grid_util::make_byte_grid;
 
-fn many_worlds(grid: &Array2<u8>, mut y: usize, x: usize, cache: &mut Array2<u64>) -> u64 {
-    while grid.get((y + 1, x)) == Some(&b'.') {
-        y += 1;
-    }
-
-    if y >= grid.dim().0 - 1 {
-        return 1;
-    }
-
-    if let Some(cached_result) = cache.get((y, x))
-        && cached_result != &0
-    {
-        return *cached_result;
-    }
-
-    let result = many_worlds(grid, y + 1, x - 1, cache) + many_worlds(grid, y + 1, x + 1, cache);
-    if let Some(cached_result) = cache.get_mut((y, x)) {
-        *cached_result = result;
-    }
-    result
-}
-
-fn calculate(grid: &Array2<u8>) -> Result<(usize, u64)> {
+fn calculate(mut grid: Array2<u8>) -> Option<(usize, u64)> {
     let mut cache = Array2::from_elem(grid.dim(), 0);
 
-    let p2 = grid
-        .indexed_iter()
-        .find(|&(_, elem)| elem == &b'S')
-        .map(|((y, x), _)| many_worlds(grid, y, x, &mut cache))
-        .context("can't find start")?;
+    grid.indexed_iter_mut()
+        .find(|(_, elem)| elem == &&b'S')
+        .map(|((y, x), _)| *cache.get_mut((y, x)).expect("will exist") = 1)?;
 
-    let p1 = cache.into_iter().filter(|&n| n > 0).count();
+    let mut p1 = 0;
+    for y in 1..grid.dim().0 {
+        for x in 0..grid.dim().1 {
+            let up = *grid.get((y - 1, x))?;
+            if up == b'|' || up == b'S' {
+                let here = *grid.get((y, x))?;
+                if here == b'^' {
+                    p1 += 1;
+                    *cache.get_mut((y, x - 1))? += *cache.get((y - 1, x))?;
+                    *cache.get_mut((y, x + 1))? += *cache.get((y - 1, x))?;
+                    *grid.get_mut((y, x - 1))? = b'|';
+                    *grid.get_mut((y, x + 1))? = b'|';
+                } else {
+                    *grid.get_mut((y, x))? = b'|';
+                    *cache.get_mut((y, x))? += *cache.get((y - 1, x))?;
+                }
+            }
+        }
+    }
 
-    Ok((p1, p2))
+    let p2 = cache.slice(s![cache.dim().0 - 1, ..]).sum();
+
+    Some((p1, p2))
 }
 
 pub fn run_2025_07(inp: &str) -> Result<String> {
     let grid = make_byte_grid(inp)?;
-    let (p1, p2) = calculate(&grid)?;
+    let (p1, p2) = calculate(grid).context("no solution (bad input?)")?;
     Ok(format!("{p1}\n{p2}"))
 }
 
@@ -55,7 +51,7 @@ mod tests {
     #[test]
     fn test_example_p1() {
         assert_eq!(
-            calculate(&make_byte_grid(EXAMPLE_DATA).unwrap()).unwrap().0,
+            calculate(make_byte_grid(EXAMPLE_DATA).unwrap()).unwrap().0,
             21
         );
     }
@@ -63,7 +59,7 @@ mod tests {
     #[test]
     fn test_example_p2() {
         assert_eq!(
-            calculate(&make_byte_grid(EXAMPLE_DATA).unwrap()).unwrap().1,
+            calculate(make_byte_grid(EXAMPLE_DATA).unwrap()).unwrap().1,
             40
         );
     }
@@ -71,7 +67,7 @@ mod tests {
     #[test]
     fn test_real_p1() {
         assert_eq!(
-            calculate(&make_byte_grid(REAL_DATA).unwrap()).unwrap().0,
+            calculate(make_byte_grid(REAL_DATA).unwrap()).unwrap().0,
             1711
         );
     }
@@ -79,7 +75,7 @@ mod tests {
     #[test]
     fn test_real_p2() {
         assert_eq!(
-            calculate(&make_byte_grid(REAL_DATA).unwrap()).unwrap().1,
+            calculate(make_byte_grid(REAL_DATA).unwrap()).unwrap().1,
             36706966158365
         );
     }
