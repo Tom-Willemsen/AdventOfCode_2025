@@ -14,41 +14,40 @@ fn neighbour_coords(y: usize, x: usize) -> [(usize, usize); 8] {
     ]
 }
 
-fn neighbours(grid: &Array2<bool>, y: usize, x: usize) -> usize {
-    neighbour_coords(y, x)
-        .into_iter()
-        .filter(|&(y, x)| *grid.get((y, x)).unwrap_or(&false))
-        .count()
-}
-
-fn calculate(mut grid: Array2<bool>) -> (u32, u32) {
-    let mut p1 = 0;
-    let mut p2 = 0;
-    let mut changed_q = Vec::with_capacity(2048);
-
-    for y in 0..grid.dim().0 {
-        for x in 0..grid.dim().1 {
-            if *grid.get((y, x)).expect("indexes are valid") && neighbours(&grid, y, x) < 4 {
-                p1 += 1;
-                changed_q.push((y, x));
-            }
-        }
-    }
-
-    while let Some((y, x)) = changed_q.pop() {
-        {
-            let itm = grid.get_mut((y, x)).expect("indexes are valid");
-            if !*itm {
-                continue;
-            }
-            *itm = false
-        }
-        p2 += 1;
-
+fn neighbours(grid: &Array2<bool>, y: usize, x: usize) -> u8 {
+    if grid.get((y, x)) != Some(&true) {
+        u8::MAX
+    } else {
         neighbour_coords(y, x)
             .into_iter()
-            .filter(|(y, x)| *grid.get((*y, *x)).unwrap_or(&false) && neighbours(&grid, *y, *x) < 4)
-            .for_each(|(y, x)| changed_q.push((y, x)));
+            .filter(|&(y, x)| *grid.get((y, x)).unwrap_or(&false))
+            .count() as u8
+    }
+}
+
+fn calculate(grid: Array2<bool>) -> (usize, usize) {
+    let mut neighbour_counts =
+        Array2::<u8>::from_shape_fn(grid.dim(), |(y, x)| neighbours(&grid, y, x));
+
+    let mut changed_q = neighbour_counts
+        .indexed_iter()
+        .filter(|&(_, elem)| *elem < 4)
+        .map(|(c, _)| c)
+        .collect::<Vec<_>>();
+
+    let p1 = changed_q.len();
+    let mut p2 = 0;
+
+    while let Some((y, x)) = changed_q.pop() {
+        for (ny, nx) in neighbour_coords(y, x) {
+            if let Some(neighbour) = neighbour_counts.get_mut((ny, nx)) {
+                *neighbour = neighbour.saturating_sub(1);
+                if *neighbour == 3 {
+                    changed_q.push((ny, nx));
+                }
+            }
+        }
+        p2 += 1;
     }
 
     (p1, p2)
