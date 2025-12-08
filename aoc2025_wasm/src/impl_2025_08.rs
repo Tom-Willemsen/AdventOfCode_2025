@@ -1,11 +1,12 @@
-use std::cmp::Reverse;
+use crate::union_find::UfNode;
 use std::collections::BinaryHeap;
-use std::{cell::RefCell, collections::HashSet, str::FromStr};
+use std::str::FromStr;
+use std::{cmp::Reverse, hash::Hash};
 
 use anyhow::{Context, Result, ensure};
 use itertools::Itertools;
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
 struct Coord {
     x: i64,
     y: i64,
@@ -38,74 +39,39 @@ impl FromStr for Coord {
     }
 }
 
-fn calculate_p1(circuits: &[RefCell<HashSet<&Coord>>]) -> usize {
-    circuits
-        .iter()
-        .map(|c| c.borrow().len())
-        .sorted_unstable()
-        .rev()
-        .take(3)
-        .product()
-}
-
 fn calculate<const P1_CONNECTIONS: usize>(inp: &str) -> Result<(usize, i64)> {
     let coords = inp
         .lines()
         .map(|line| line.parse::<Coord>())
+        .zip(0_usize..)
+        .map(|(c, i)| c.map(|c| (c, i)))
         .collect::<Result<Vec<_>>>()?;
 
     let mut distances = coords
         .iter()
         .tuple_combinations()
-        .map(|(b1, b2)| (Reverse(b1.dist_squared(b2)), b1, b2))
+        .map(|((b1, id1), (b2, id2))| (Reverse(b1.dist_squared(b2)), id1, id2, b1, b2))
         .collect::<BinaryHeap<_>>();
 
-    let mut circuits: Vec<RefCell<HashSet<&Coord>>> = vec![];
+    let mut circuits: UfNode = UfNode::new((0..coords.len()).collect::<Vec<_>>());
     let mut connections = 0;
 
     let mut p1 = 0;
     let mut p2 = 0;
 
-    while let Some((_, b1, b2)) = distances.pop() {
-        let mut added = false;
-        for c in circuits.iter() {
-            let mut c = c.borrow_mut();
-            if c.contains(b1) || c.contains(b2) {
-                c.insert(b1);
-                c.insert(b2);
-                for c2 in circuits.iter() {
-                    if let Ok(mut c2) = c2.try_borrow_mut()
-                        && (c2.contains(b1) || c2.contains(b2))
-                    {
-                        c.extend(c2.iter());
-                        c2.clear();
-                    }
-                }
-                added = true;
-                break;
-            }
-        }
-
-        if !added {
-            let new_circuit = HashSet::from([b1, b2]);
-            circuits.push(RefCell::new(new_circuit));
-        }
-
-        circuits.retain(|c| !c.borrow().is_empty());
+    while let Some((_, id1, id2, b1, b2)) = distances.pop() {
+        circuits.union_sets(*id1, *id2);
 
         connections += 1;
 
         if connections == P1_CONNECTIONS {
-            p1 = calculate_p1(&circuits);
+            let mut circuit_sizes = circuits.sizes();
+            let partition_point = circuit_sizes.len();
+            let (_, _, top3) = circuit_sizes.select_nth_unstable(partition_point.saturating_sub(4));
+            p1 = top3.iter().product();
         }
 
-        let max_circuit_length = circuits
-            .iter()
-            .map(|c| c.borrow().len())
-            .max()
-            .context("no circuits")?;
-
-        if max_circuit_length == coords.len() {
+        if circuits.num_sets() == 1 {
             ensure!(p1 != 0, "solved part 2 before part 1?");
             p2 = b1.x * b2.x;
             break;

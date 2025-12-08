@@ -7,6 +7,7 @@ mod impl_2025_05;
 mod impl_2025_06;
 mod impl_2025_07;
 mod impl_2025_08;
+pub(crate) mod union_find;
 
 pub use wasm_bindgen_rayon::init_thread_pool;
 
