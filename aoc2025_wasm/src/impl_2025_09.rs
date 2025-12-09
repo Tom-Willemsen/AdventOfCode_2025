@@ -1,10 +1,11 @@
 use anyhow::{Context, Result};
 use itertools::Itertools;
-use rayon::prelude::*;
-use std::cmp::Reverse;
+use ndarray::{Array2, s};
+use std::{cmp::Reverse, collections::VecDeque};
 
 fn parse(inp: &str) -> Result<Vec<(u64, u64)>> {
-    inp.lines()
+    inp.trim()
+        .lines()
         .map(|line| {
             let (a, b) = line.split_once(",").context("bad format")?;
             Ok((a.parse()?, b.parse()?))
@@ -16,85 +17,138 @@ fn area(p1: (u64, u64), p2: (u64, u64)) -> u64 {
     (p2.0.abs_diff(p1.0) + 1) * (p2.1.abs_diff(p1.1) + 1)
 }
 
-fn valid_part2(
-    p1: (u64, u64),
-    p2: (u64, u64),
-    x_cutoffs: &[(u64, u64, u64)],
-    y_cutoffs: &[u64],
-) -> bool {
-    let min_x = p1.0.min(p2.0);
-    let max_x = p1.0.max(p2.0);
-    let min_y = p1.1.min(p2.1);
-    let max_y = p1.1.max(p2.1);
+fn valid_part2((xs, ys): (usize, usize), (xe, ye): (usize, usize), grid: &Array2<State>) -> bool {
+    // 'quick' pre check that all 4 corners are filled in - saves substantial time.
+    grid[(xs, ys)] != State::Empty
+        && grid[(xs, ye)] != State::Empty
+        && grid[(xe, ys)] != State::Empty
+        && grid[(xe, ye)] != State::Empty
+        && !grid
+            .slice(s![xs..=xe, ys..=ye])
+            .into_iter()
+            .contains(&State::Empty)
+}
 
-    for &y in y_cutoffs.iter() {
-        if y > max_y {
-            break;
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum State {
+    Undefined,
+    Empty,
+    Occupied,
+}
+
+type Data = [((u64, u64), (usize, usize))];
+
+fn fill(data: &Data, grid: &mut Array2<State>) -> Option<()> {
+    let mut prev_pt = data.last()?.1;
+
+    for (_, indices) in data.iter() {
+        let sx = prev_pt.0;
+        let sy = prev_pt.1;
+        let ex = indices.0;
+        let ey = indices.1;
+
+        if sy == ey {
+            for x in sx.min(ex) + 1..sx.max(ex) {
+                grid[(x, sy)] = State::Occupied;
+            }
+        } else {
+            for y in sy.min(ey) + 1..sy.max(ey) {
+                grid[(sx, y)] = State::Occupied;
+            }
         }
-        if y < min_y {
+        grid[(sx, sy)] = State::Occupied;
+        grid[(ex, ey)] = State::Occupied;
+
+        prev_pt = *indices;
+    }
+    Some(())
+}
+
+fn floodfill(grid: &mut Array2<State>) {
+    let mut q = VecDeque::with_capacity(4096);
+    q.push_back((0_usize, 0_usize));
+
+    while let Some((cx, cy)) = q.pop_front() {
+        if grid[(cx, cy)] != State::Undefined {
             continue;
         }
-        for cutoff in x_cutoffs.iter() {
-            if cutoff.0 > max_x {
-                break;
+        grid[(cx, cy)] = State::Empty;
+
+        for (x, y) in [
+            (cx + 1, cy),
+            (cx.wrapping_sub(1), cy),
+            (cx, cy + 1),
+            (cx, cy.wrapping_sub(1)),
+        ] {
+            if grid.get((x, y)) == Some(&State::Undefined) {
+                q.push_back((x, y));
             }
-            if cutoff.0 <= min_x || !(cutoff.1..cutoff.2).contains(&y) {
-                continue;
-            }
-            return false;
         }
     }
-
-    true
 }
 
 fn calculate(inp: &str) -> Result<(u64, u64)> {
     let data = parse(inp)?;
 
-    let mut x_cutoffs = vec![];
-
-    let mut prev_pt = *data.last().context("not enough data?")?;
-
-    for pt in data.iter() {
-        if pt.1 > prev_pt.1 {
-            x_cutoffs.push((pt.0, prev_pt.1, pt.1 + 1));
-        } else if pt.1 < prev_pt.1 {
-            x_cutoffs.push((pt.0, pt.1 + 1, prev_pt.1))
-        }
-
-        prev_pt = *pt;
-    }
-
-    x_cutoffs.sort_unstable();
-
-    let y_cutoffs = data
+    let xs = data
         .iter()
-        .flat_map(|&(_, y)| [y, y + 1])
+        .flat_map(|&(x, _)| [x - 1, x, x + 1])
         .sorted_unstable()
         .dedup()
         .collect::<Vec<_>>();
 
+    let ys = data
+        .iter()
+        .flat_map(|&(_, y)| [y - 1, y, y + 1])
+        .sorted_unstable()
+        .dedup()
+        .collect::<Vec<_>>();
+
+    let data = data
+        .into_iter()
+        .map(|(x, y)| {
+            Ok((
+                (x, y),
+                (
+                    xs.binary_search(&x).ok().context("binary search fail")?,
+                    ys.binary_search(&y).ok().context("binary search fail")?,
+                ),
+            ))
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    // What kind of psychopath uses (x, y) indexing !??
+    let mut grid = Array2::from_elem((xs.len(), ys.len()), State::Undefined);
+
+    fill(&data, &mut grid);
+    floodfill(&mut grid);
+
     let mut combinations_by_area = data
         .iter()
         .tuple_combinations()
-        .map(|(p1, p2)| (Reverse(area(*p1, *p2)), p1, p2))
+        .map(|(p1, p2)| {
+            (
+                Reverse(area(p1.0, p2.0)),
+                (p1.1.0.min(p2.1.0), p1.1.1.min(p2.1.1)),
+                (p1.1.0.max(p2.1.0), p1.1.1.max(p2.1.1)),
+            )
+        })
         .collect::<Vec<_>>();
 
-    combinations_by_area.par_sort_unstable();
+    combinations_by_area.sort_unstable_by_key(|e| e.0);
 
     let p1 = combinations_by_area
         .first()
-        .map(|&(area, _, _)| area.0)
+        .map(|&(area, _, _)| area)
         .context("not enough combinations?")?;
 
     let p2 = combinations_by_area
-        .par_iter()
-        .by_exponential_blocks()
-        .find_first(|&(_, p1, p2)| valid_part2(**p1, **p2, &x_cutoffs, &y_cutoffs))
-        .map(|&(area, _, _)| area.0)
+        .iter()
+        .find(|(_, pt1, pt2)| valid_part2(*pt1, *pt2, &grid))
+        .map(|&(area, _, _)| area)
         .context("no p2 solution")?;
 
-    Ok((p1, p2))
+    Ok((p1.0, p2.0))
 }
 
 pub fn run_2025_09(inp: &str) -> Result<String> {
@@ -127,5 +181,47 @@ mod tests {
     #[test]
     fn test_real_p2() {
         assert_eq!(calculate(REAL_DATA).unwrap().1, 1562459680);
+    }
+
+    #[test]
+    fn test_tricky_input() {
+        // Tricky as it has edges 'within' the shape, but no empty space
+        let tricky = "
+1,1
+4,1
+4,4
+5,4
+5,1
+10,1
+10,10
+1,10
+";
+        assert_eq!(calculate(tricky).unwrap(), (100, 100));
+    }
+
+    #[test]
+    fn test_1_wide_l_input() {
+        // L-shaped input, 1 wide.
+        let tricky = "
+1,1
+1,10
+1,1
+15,1
+";
+        assert_eq!(calculate(tricky).unwrap(), (150, 15));
+    }
+
+    #[test]
+    fn test_2_wide_l_input() {
+        // L-shaped input, 2 wide.
+        let tricky = "
+1,1
+1,10
+2,10
+2,2
+10,2
+10,1
+";
+        assert_eq!(calculate(tricky).unwrap(), (100, 20));
     }
 }
