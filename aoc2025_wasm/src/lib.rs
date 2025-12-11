@@ -9,6 +9,7 @@ mod impl_2025_07;
 mod impl_2025_08;
 mod impl_2025_09;
 mod impl_2025_10;
+mod impl_2025_11;
 pub(crate) mod union_find;
 
 pub use wasm_bindgen_rayon::init_thread_pool;
@@ -29,6 +30,7 @@ pub fn run_day(day: u32, input: &str) -> String {
         8 => impl_2025_08::run_2025_08(input),
         9 => impl_2025_09::run_2025_09(input),
         10 => impl_2025_10::run_2025_10(input),
+        11 => impl_2025_11::run_2025_11(input),
         _ => Err(anyhow!("No solution for that day yet")),
     };
 

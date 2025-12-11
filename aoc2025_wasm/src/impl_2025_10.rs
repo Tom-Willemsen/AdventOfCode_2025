@@ -1,7 +1,6 @@
 use anyhow::{Context, Result, bail};
 use rayon::prelude::*;
 use std::{
-    cmp::Reverse,
     collections::{HashSet, VecDeque},
     str::FromStr,
 };
@@ -30,7 +29,7 @@ impl FromStr for InputLine {
             .map(|c| c == b'#')
             .collect::<Vec<_>>();
 
-        let mut wiring: Vec<Vec<usize>> = groups
+        let wiring: Vec<Vec<usize>> = groups
             .get(1..groups.len() - 1)
             .context("not enough groups")?
             .iter()
@@ -41,8 +40,6 @@ impl FromStr for InputLine {
                     .collect::<Result<Vec<usize>, anyhow::Error>>()
             })
             .collect::<Result<_, _>>()?;
-
-        wiring.sort_unstable_by_key(|w| Reverse(w.len()));
 
         let joltages = groups
             .last()
