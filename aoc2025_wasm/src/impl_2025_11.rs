@@ -16,7 +16,7 @@ fn pathfind(connections: &[(&str, &str)], start: &str, end: &str) -> u64 {
 
     let mut ans = 0;
 
-    for _ in 0..connections.len() {
+    for _ in 0..connections.len() - 1 {
         let mut new = HashMap::<&str, u64>::default();
 
         connections.iter().for_each(|(s, e)| {
@@ -48,12 +48,15 @@ fn calculate_p1(connections: &[(&str, &str)]) -> u64 {
 }
 
 fn calculate_p2(connections: &[(&str, &str)]) -> u64 {
-    (pathfind(connections, "svr", "dac")
-        * pathfind(connections, "dac", "fft")
-        * pathfind(connections, "fft", "out"))
-        + (pathfind(connections, "svr", "fft")
-            * pathfind(connections, "fft", "dac")
-            * pathfind(connections, "dac", "out"))
+    let fft_to_dac = pathfind(connections, "fft", "dac");
+
+    if fft_to_dac != 0 {
+        pathfind(connections, "svr", "fft") * fft_to_dac * pathfind(connections, "dac", "out")
+    } else {
+        pathfind(connections, "svr", "dac")
+            * pathfind(connections, "dac", "fft")
+            * pathfind(connections, "fft", "out")
+    }
 }
 
 pub fn run_2025_11(inp: &str) -> Result<String> {
