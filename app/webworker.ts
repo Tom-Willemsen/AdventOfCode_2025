@@ -1,18 +1,7 @@
 import init, { initThreadPool, run_day } from "@/aoc2025_wasm/pkg/aoc2025_wasm";
 
-function warmup() {
-	for (let day = 1; day <= 12; day++) {
-		try {
-			run_day(day, "");
-		} catch (err) {
-			console.log(`failed·to·warmup·day·${day}:·${err}`);
-		}
-	}
-}
-
 init().then(() => {
 	initThreadPool(navigator.hardwareConcurrency).then(() => {
-		warmup();
 		postMessage(["", null]);
 	});
 });
